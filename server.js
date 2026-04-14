@@ -23,7 +23,7 @@ Time: ${new Date().toISOString()}
     // 📧 Send email
     await resend.emails.send({
       from: "onboarding@resend.dev", // default test sender
-      to: "mojtaba.saad1999@gmail.com", // 👈 change if needed
+      to: "interactive_balance@hotmail.com", // 👈 change if needed
       subject: "New Link Opened",
       text: message,
     });
