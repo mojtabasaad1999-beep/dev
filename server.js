@@ -1,20 +1,15 @@
 const express = require("express");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
 const app = express();
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // VERY IMPORTANT (must be false for 587)
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// 🔐 Initialize Resend with API key
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-app.get("/", (req, res) => {
-  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+app.get("/", async (req, res) => {
+  // 📊 Visitor info
+  const ip =
+    req.headers["x-forwarded-for"] || req.socket.remoteAddress;
   const userAgent = req.headers["user-agent"];
 
   const message = `
@@ -24,16 +19,27 @@ Device: ${userAgent}
 Time: ${new Date().toISOString()}
 `;
 
-  transporter.sendMail({
-    from: "mojtaba.saad1999@gmail.com",
-    to: "mojtaba.saad1999@gmail.com",
-    subject: "New Link Opened",
-    text: message
-  });
+  try {
+    // 📧 Send email
+    await resend.emails.send({
+      from: "onboarding@resend.dev", // default test sender
+      to: "mojtaba.saad1999@gmail.com", // 👈 change if needed
+      subject: "New Link Opened",
+      text: message,
+    });
 
-  res.redirect("https://journals.sagepub.com/doi/10.1177/02683962231207108");
+    console.log("Email sent ✅");
+  } catch (err) {
+    console.log("Email error ❌:", err);
+  }
+
+  // 🔁 Redirect
+  res.redirect(
+    "https://journals.sagepub.com/doi/10.1177/02683962231207108"
+  );
 });
 
+// 🌍 Use dynamic port (important for Render)
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
